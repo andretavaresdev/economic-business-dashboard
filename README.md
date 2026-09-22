@@ -9,7 +9,7 @@ API do Banco Central → Python → PostgreSQL → Streamlit
 ```
 
 ## Indicadores previstos
-* Meta Selic
+* Selic
 * IPCA
 * Dólar Comercial
 
