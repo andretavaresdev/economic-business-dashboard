@@ -1,5 +1,7 @@
 # Painel de Cenário Econômico para Negócios
 
+![Tests](https://github.com/andretavaresdev/economic-business-dashboard/actions/workflows/tests.yml/badge.svg)
+
 Pipeline de dados que coleta indicadores econômicos da API do Banco Central do Brasil (SGS), armazena o histórico no PostgreSQL e apresenta um dashboard analítico em Streamlit — com métricas derivadas orientadas a negócio, não apenas os dados brutos.
 
 ## Arquitetura
@@ -143,7 +145,7 @@ ruff check .
 
 ## Integração contínua
 
-`.github/workflows/tests.yml` roda `ruff check .` e `pytest` a cada push/PR na branch `main`. O workflow já está no repositório; falta apenas criar o repositório remoto no GitHub e dar `git push` para o badge no topo deste README passar a refletir o status real (substitua `SEU_USUARIO` pelo dono do repositório).
+`.github/workflows/tests.yml` roda `ruff check .` e `pytest` a cada push/PR na branch `main`. O badge no topo deste README reflete o status da última execução em [andretavaresdev/economic-business-dashboard](https://github.com/andretavaresdev/economic-business-dashboard).
 
 ## Variáveis de ambiente
 
