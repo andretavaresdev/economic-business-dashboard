@@ -61,7 +61,9 @@ def run_pipeline(
     indicator: Indicator,
     backfill: bool = False,
 ) -> None:
-    execution_id = start_etl_execution()
+    execution_id = start_etl_execution(
+        indicator_code=indicator.code,
+    )
 
     extracted_count = 0
     loaded_count = 0

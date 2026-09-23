@@ -4,19 +4,29 @@ from src.database import get_connection
 FINAL_STATUSES = {"sucesso", "falha"}
 
 
-def start_etl_execution() -> int:
+def start_etl_execution(
+    indicator_code: int,
+) -> int:
+    if indicator_code <= 0:
+        raise ValueError(
+            "O código do indicador deve ser positivo."
+        )
+
     with get_connection() as connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
                 INSERT INTO execucoes_etl (
+                    codigo_indicador,
                     status
                 )
                 VALUES (
+                    %s,
                     'em_execucao'
                 )
                 RETURNING id;
-                """
+                """,
+                (indicator_code,),
             )
 
             result = cursor.fetchone()

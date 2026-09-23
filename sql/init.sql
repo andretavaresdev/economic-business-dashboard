@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS valores_indicadores (
 
 CREATE TABLE IF NOT EXISTS execucoes_etl (
     id BIGSERIAL PRIMARY KEY,
+    codigo_indicador INTEGER NOT NULL,
     iniciado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     finalizado_em TIMESTAMPTZ,
     status VARCHAR(20) NOT NULL,
@@ -31,3 +32,6 @@ CREATE TABLE IF NOT EXISTS execucoes_etl (
     CONSTRAINT ck_execucoes_etl_status
         CHECK (status IN ('em_execucao', 'sucesso', 'falha'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_execucoes_etl_codigo_indicador
+ON execucoes_etl (codigo_indicador);
