@@ -2,6 +2,33 @@ from collections.abc import Sequence
 
 from src.database import get_connection
 from src.transform import IndicatorValue
+from datetime import date
+
+def get_latest_reference_date(
+    indicator_code: int,
+) -> date | None:
+    if indicator_code <= 0:
+        raise ValueError("O código do indicador deve ser positivo.")
+
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT MAX(data_referencia)
+                FROM valores_indicadores
+                WHERE codigo_indicador = %s;
+                """,
+                (indicator_code,),
+            )
+
+            result = cursor.fetchone()
+
+    if result is None:
+        raise RuntimeError(
+            "Não foi possível consultar a última data armazenada."
+        )
+
+    return result[0]
 
 def load_indicator(
     indicator_code: int,
