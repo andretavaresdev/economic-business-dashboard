@@ -3,4 +3,5 @@ psycopg[binary]
 python-dotenv
 pytest
 pandas
+numpy
 streamlit

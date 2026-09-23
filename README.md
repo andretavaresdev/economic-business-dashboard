@@ -4,6 +4,8 @@
 
 Pipeline de dados que coleta indicadores econômicos da API do Banco Central do Brasil (SGS), armazena o histórico no PostgreSQL e apresenta um dashboard analítico em Streamlit — com métricas derivadas orientadas a negócio, não apenas os dados brutos.
 
+![Dashboard](docs/dashboard.png)
+
 ## Arquitetura
 
 ```text
@@ -54,7 +56,7 @@ Pipeline de dados que coleta indicadores econômicos da API do Banco Central do 
 │   ├── queries.py
 │   ├── run_etl.py
 │   └── transform.py
-├── tests/                      # Um arquivo de teste por módulo em src/ e para app.py
+├── tests/                      # Testes unitários (extract.py, load.py, config.py e database.py ainda não têm arquivo dedicado)
 └── .github/workflows/tests.yml # CI: lint (ruff) + testes (pytest)
 ```
 
@@ -86,7 +88,7 @@ O dashboard não mostra só os valores brutos — calcula indicadores de negóci
 
 ```bash
 # 1. Clonar e entrar no projeto
-git clone <url-do-repositorio>
+git clone https://github.com/andretavaresdev/economic-business-dashboard.git
 cd economic-business-dashboard
 
 # 2. Ambiente virtual e dependências

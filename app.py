@@ -256,13 +256,22 @@ def render_period_comparison(
     except ValueError:
         return
 
+    if is_currency_indicator(indicator_code):
+        change_text = (
+            f"{format_signed_number_br(comparison.percentage_change)}%"
+        )
+    else:
+        change_text = (
+            f"{format_signed_number_br(comparison.absolute_change)} p.p."
+        )
+
     st.metric(
         label=f"Variação no período ({period_label})",
         value=format_indicator_value(
             indicator_code, comparison.current_value
         ),
         delta=(
-            f"{format_signed_number_br(comparison.percentage_change)}% "
+            f"{change_text} "
             f"desde {comparison.previous_date:%d/%m/%Y}"
         ),
     )

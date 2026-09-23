@@ -350,3 +350,47 @@ def test_period_comparison_metric_updates_with_selected_period(
     assert (
         "Últimos 5 anos" in comparison_metrics[0].label
     )
+
+
+def test_period_comparison_uses_points_for_rate_indicators(
+    monkeypatch,
+):
+    at, _ = run_app(
+        monkeypatch,
+        history_spy=rich_history_spy,
+    )
+
+    at.sidebar.selectbox[0].set_value("Selic").run()
+
+    comparison_metrics = [
+        metric
+        for metric in at.metric
+        if metric.label.startswith(
+            "Variação no período"
+        )
+    ]
+
+    assert len(comparison_metrics) == 1
+    assert "p.p." in comparison_metrics[0].delta
+    assert "%" not in comparison_metrics[0].delta
+
+
+def test_period_comparison_uses_percentage_for_currency(
+    monkeypatch,
+):
+    at, _ = run_app(
+        monkeypatch,
+        history_spy=rich_history_spy,
+    )
+
+    comparison_metrics = [
+        metric
+        for metric in at.metric
+        if metric.label.startswith(
+            "Variação no período"
+        )
+    ]
+
+    assert len(comparison_metrics) == 1
+    assert "%" in comparison_metrics[0].delta
+    assert "p.p." not in comparison_metrics[0].delta
