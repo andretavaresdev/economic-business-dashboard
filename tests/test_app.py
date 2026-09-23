@@ -156,7 +156,6 @@ def test_renders_three_indicator_cards_with_correct_format(
         metric.label: metric.value for metric in at.metric
     }
 
-    assert len(metric_values) == 3
     assert "R$ 5,3421" in metric_values["💵 Dólar comercial"]
     assert metric_values["🛒 IPCA"] == "0,44%"
     assert metric_values["🏦 Selic"] == "15,25%"
@@ -246,3 +245,106 @@ def test_shows_info_when_history_is_empty_for_period(
 
     assert len(at.info) == 1
     assert len(at.dataframe) == 0
+
+
+def rich_history_spy(
+    indicator_code: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> pd.DataFrame:
+    if indicator_code == 433:
+        monthly_dates = pd.date_range(
+            end="2026-09-01", periods=12, freq="MS"
+        )
+
+        return pd.DataFrame(
+            {
+                "indicator_code": 433,
+                "reference_date": monthly_dates,
+                "value": [0.5] * len(monthly_dates),
+            }
+        )
+
+    reference_dates = pd.date_range(
+        start="2016-01-01", end="2026-09-23", freq="7D"
+    )
+
+    base_value = float(indicator_code)
+
+    return pd.DataFrame(
+        {
+            "indicator_code": indicator_code,
+            "reference_date": reference_dates,
+            "value": [
+                base_value + step * 0.01
+                for step in range(len(reference_dates))
+            ],
+        }
+    )
+
+
+def test_indicator_cards_show_derived_business_metrics(
+    monkeypatch,
+):
+    at, _ = run_app(
+        monkeypatch,
+        history_spy=rich_history_spy,
+    )
+
+    assert at.exception == []
+
+    caption_texts = [
+        caption.value for caption in at.caption
+    ]
+
+    assert any(
+        "Acumulado 12 meses" in text
+        for text in caption_texts
+    )
+    assert any(
+        "p.p. em 12 meses" in text
+        for text in caption_texts
+    )
+    assert any(
+        "em 30 dias" in text for text in caption_texts
+    )
+
+
+def test_period_comparison_metric_updates_with_selected_period(
+    monkeypatch,
+):
+    at, _ = run_app(
+        monkeypatch,
+        history_spy=rich_history_spy,
+    )
+
+    comparison_metrics = [
+        metric
+        for metric in at.metric
+        if metric.label.startswith(
+            "Variação no período"
+        )
+    ]
+
+    assert len(comparison_metrics) == 1
+    assert (
+        "Últimos 12 meses"
+        in comparison_metrics[0].label
+    )
+
+    at.sidebar.selectbox[1].set_value(
+        "Últimos 5 anos"
+    ).run()
+
+    comparison_metrics = [
+        metric
+        for metric in at.metric
+        if metric.label.startswith(
+            "Variação no período"
+        )
+    ]
+
+    assert len(comparison_metrics) == 1
+    assert (
+        "Últimos 5 anos" in comparison_metrics[0].label
+    )

@@ -3,6 +3,14 @@ from datetime import date, timedelta
 import pandas as pd
 import streamlit as st
 
+from src.metrics import (
+    DOLLAR_VARIATION_HISTORY_BUFFER_DAYS,
+    SELIC_COMPARISON_WINDOW_DAYS,
+    calculate_dollar_variation_30_days,
+    calculate_ipca_accumulated_12_months,
+    calculate_selic_change_in_points,
+    compare_to_previous_period,
+)
 from src.queries import (
     get_indicator_history,
     get_latest_indicator_values,
@@ -15,15 +23,25 @@ PERIOD_OPTIONS = {
     "Últimos 5 anos": 365 * 5,
 }
 
+SELIC_INDICATOR_CODE = 432
+IPCA_INDICATOR_CODE = 433
 CURRENCY_INDICATOR_CODE = 1
 
 INDICATOR_ICONS = {
-    432: "🏦",
-    433: "🛒",
-    1: "💵",
+    SELIC_INDICATOR_CODE: "🏦",
+    IPCA_INDICATOR_CODE: "🛒",
+    CURRENCY_INDICATOR_CODE: "💵",
 }
 
 DEFAULT_INDICATOR_ICON = "📊"
+
+DERIVED_METRIC_HISTORY_BUFFER_DAYS = {
+    SELIC_INDICATOR_CODE: SELIC_COMPARISON_WINDOW_DAYS + 30,
+    IPCA_INDICATOR_CODE: 400,
+    CURRENCY_INDICATOR_CODE: (
+        DOLLAR_VARIATION_HISTORY_BUFFER_DAYS + 10
+    ),
+}
 
 
 def format_number_br(
@@ -39,6 +57,17 @@ def format_number_br(
         .replace(",", "#")
         .replace(".", ",")
         .replace("#", ".")
+    )
+
+
+def format_signed_number_br(
+    value: float,
+    decimal_places: int = 2,
+) -> str:
+    sign = "+" if value >= 0 else "-"
+
+    return (
+        f"{sign}{format_number_br(abs(value), decimal_places)}"
     )
 
 
@@ -85,6 +114,63 @@ def load_indicator_history(
     )
 
 
+def calculate_card_derived_metric(
+    indicator_code: int,
+    end_date: date,
+) -> str | None:
+    buffer_days = DERIVED_METRIC_HISTORY_BUFFER_DAYS.get(
+        indicator_code
+    )
+
+    if buffer_days is None:
+        return None
+
+    start_date = end_date - timedelta(days=buffer_days)
+
+    try:
+        history = load_indicator_history(
+            indicator_code=indicator_code,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        if indicator_code == SELIC_INDICATOR_CODE:
+            change = calculate_selic_change_in_points(
+                history
+            )
+            return (
+                f"{format_signed_number_br(change)} p.p. "
+                "em 12 meses"
+            )
+
+        if indicator_code == IPCA_INDICATOR_CODE:
+            accumulated = (
+                calculate_ipca_accumulated_12_months(
+                    history
+                )
+            )
+            return (
+                "Acumulado 12 meses: "
+                f"{format_signed_number_br(accumulated)}%"
+            )
+
+        if indicator_code == CURRENCY_INDICATOR_CODE:
+            variation = (
+                calculate_dollar_variation_30_days(
+                    history
+                )
+            )
+            return (
+                f"{format_signed_number_br(variation)}% "
+                "em 30 dias"
+            )
+
+    except Exception:
+        return None
+
+    return None
+
+
 def render_indicator_cards(
     latest_values: pd.DataFrame,
 ) -> None:
@@ -103,6 +189,11 @@ def render_indicator_cards(
             indicator_code, DEFAULT_INDICATOR_ICON
         )
 
+        derived_metric = calculate_card_derived_metric(
+            indicator_code,
+            reference_date.date(),
+        )
+
         with column:
             with st.container(border=True):
                 st.metric(
@@ -117,6 +208,9 @@ def render_indicator_cards(
                     f"{indicator['frequency'].capitalize()} • "
                     f"Referência: {reference_date:%d/%m/%Y}"
                 )
+
+                if derived_metric is not None:
+                    st.caption(f"📈 {derived_metric}")
 
 
 def render_sidebar_filters(
@@ -143,6 +237,30 @@ def render_sidebar_filters(
     )
 
     return selected_indicator_name, selected_period
+
+
+def render_period_comparison(
+    history: pd.DataFrame,
+    indicator_code: int,
+    period_label: str,
+) -> None:
+    try:
+        comparison = compare_to_previous_period(
+            history, days=PERIOD_OPTIONS[period_label]
+        )
+    except ValueError:
+        return
+
+    st.metric(
+        label=f"Variação no período ({period_label})",
+        value=format_indicator_value(
+            indicator_code, comparison.current_value
+        ),
+        delta=(
+            f"{format_signed_number_br(comparison.percentage_change)}% "
+            f"desde {comparison.previous_date:%d/%m/%Y}"
+        ),
+    )
 
 
 def main() -> None:
@@ -241,6 +359,12 @@ def main() -> None:
         )
         st.stop()
 
+    render_period_comparison(
+        history,
+        selected_indicator_code,
+        selected_period,
+    )
+
     value_label = indicator_value_axis_label(
         selected_indicator_code
     )
@@ -273,7 +397,7 @@ def main() -> None:
         st.dataframe(
             table_data,
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
         )
 
 
