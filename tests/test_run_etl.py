@@ -1,14 +1,14 @@
 from datetime import date
-
 import pytest
-
-import src.run_etl as run_etl
-
+from src.run_etl import (
+    calculate_historical_start_date,
+    determine_start_date,
+)
 
 def test_calculates_five_year_historical_period() -> None:
     end_date = date(2026, 9, 23)
 
-    result = run_etl.calculate_historical_start_date(
+    result = calculate_historical_start_date(
         end_date
     )
 
@@ -18,7 +18,7 @@ def test_calculates_five_year_historical_period() -> None:
 def test_handles_leap_day_in_historical_period() -> None:
     end_date = date(2024, 2, 29)
 
-    result = run_etl.calculate_historical_start_date(
+    result = calculate_historical_start_date(
         end_date
     )
 
@@ -36,12 +36,11 @@ def test_backfill_does_not_query_database(
         )
 
     monkeypatch.setattr(
-        run_etl,
-        "get_latest_reference_date",
+        "src.run_etl.get_latest_reference_date",
         unexpected_database_query,
     )
 
-    result = run_etl.determine_start_date(
+    result = determine_start_date(
         indicator_code=432,
         end_date=date(2026, 9, 23),
         backfill=True,
@@ -54,12 +53,11 @@ def test_uses_historical_period_when_database_is_empty(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        run_etl,
-        "get_latest_reference_date",
+        "src.run_etl.get_latest_reference_date",
         lambda indicator_code: None,
     )
 
-    result = run_etl.determine_start_date(
+    result = determine_start_date(
         indicator_code=432,
         end_date=date(2026, 9, 23),
         backfill=False,
@@ -72,12 +70,11 @@ def test_reprocesses_last_seven_stored_days(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        run_etl,
-        "get_latest_reference_date",
+        "src.run_etl.get_latest_reference_date",
         lambda indicator_code: date(2026, 9, 23),
     )
 
-    result = run_etl.determine_start_date(
+    result = determine_start_date(
         indicator_code=432,
         end_date=date(2026, 9, 23),
         backfill=False,
@@ -90,8 +87,7 @@ def test_rejects_latest_date_in_the_future(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        run_etl,
-        "get_latest_reference_date",
+        "src.run_etl.get_latest_reference_date",
         lambda indicator_code: date(2026, 9, 24),
     )
 
@@ -99,8 +95,25 @@ def test_rejects_latest_date_in_the_future(
         RuntimeError,
         match="está no futuro",
     ):
-        run_etl.determine_start_date(
+        determine_start_date(
             indicator_code=432,
             end_date=date(2026, 9, 23),
             backfill=False,
         )
+
+def test_determine_start_date_uses_custom_reprocess_window(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "src.run_etl.get_latest_reference_date",
+        lambda indicator_code: date(2026, 9, 1),
+    )
+
+    start_date = determine_start_date(
+        indicator_code=433,
+        end_date=date(2026, 9, 23),
+        backfill=False,
+        reprocess_days=90,
+    )
+
+    assert start_date == date(2026, 6, 4)
