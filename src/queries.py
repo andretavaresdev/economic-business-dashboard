@@ -1,18 +1,20 @@
 from collections.abc import Sequence
 from datetime import date
+
 import pandas as pd
+
 from src.database import get_connection
+
 
 def execute_query(
     query: str,
     parameters: Sequence[object] = (),
 ) -> pd.DataFrame:
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(query, parameters)
+    with get_connection() as connection, connection.cursor() as cursor:
+        cursor.execute(query, parameters)
 
-            rows = cursor.fetchall()
-            description = cursor.description
+        rows = cursor.fetchall()
+        description = cursor.description
 
     if description is None:
         return pd.DataFrame()

@@ -1,6 +1,5 @@
 from src.database import get_connection
 
-
 FINAL_STATUSES = {"sucesso", "falha"}
 
 
@@ -12,10 +11,9 @@ def start_etl_execution(
             "O código do indicador deve ser positivo."
         )
 
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
+    with get_connection() as connection, connection.cursor() as cursor:
+        cursor.execute(
+            """
                 INSERT INTO execucoes_etl (
                     codigo_indicador,
                     status
@@ -26,10 +24,10 @@ def start_etl_execution(
                 )
                 RETURNING id;
                 """,
-                (indicator_code,),
-            )
+            (indicator_code,),
+        )
 
-            result = cursor.fetchone()
+        result = cursor.fetchone()
 
     if result is None:
         raise RuntimeError(
@@ -55,10 +53,9 @@ def finish_etl_execution(
             "As quantidades de registros não podem ser negativas."
         )
 
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
+    with get_connection() as connection, connection.cursor() as cursor:
+        cursor.execute(
+            """
                 UPDATE execucoes_etl
                 SET
                     finalizado_em = CURRENT_TIMESTAMP,
@@ -68,16 +65,16 @@ def finish_etl_execution(
                     mensagem_erro = %s
                 WHERE id = %s;
                 """,
-                (
-                    status,
-                    extracted_records,
-                    loaded_records,
-                    error_message,
-                    execution_id,
-                ),
-            )
+            (
+                status,
+                extracted_records,
+                loaded_records,
+                error_message,
+                execution_id,
+            ),
+        )
 
-            if cursor.rowcount != 1:
-                raise RuntimeError(
-                    f"Execução {execution_id} não encontrada."
-                )
+        if cursor.rowcount != 1:
+            raise RuntimeError(
+                f"Execução {execution_id} não encontrada."
+            )

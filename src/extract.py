@@ -2,7 +2,6 @@ from datetime import date, timedelta
 
 import requests
 
-
 BCB_API_URL = (
     "https://api.bcb.gov.br/dados/serie/"
     "bcdata.sgs.{series_code}/dados"

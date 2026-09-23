@@ -1,8 +1,9 @@
 from collections.abc import Sequence
+from datetime import date
 
 from src.database import get_connection
 from src.transform import IndicatorValue
-from datetime import date
+
 
 def get_latest_reference_date(
     indicator_code: int,
@@ -10,18 +11,17 @@ def get_latest_reference_date(
     if indicator_code <= 0:
         raise ValueError("O código do indicador deve ser positivo.")
 
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
+    with get_connection() as connection, connection.cursor() as cursor:
+        cursor.execute(
+            """
                 SELECT MAX(data_referencia)
                 FROM valores_indicadores
                 WHERE codigo_indicador = %s;
                 """,
-                (indicator_code,),
-            )
+            (indicator_code,),
+        )
 
-            result = cursor.fetchone()
+        result = cursor.fetchone()
 
     if result is None:
         raise RuntimeError(
@@ -70,10 +70,9 @@ def load_indicator(
         for record in records
     ]
 
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
+    with get_connection() as connection, connection.cursor() as cursor:
+        cursor.execute(
+            """
                 INSERT INTO indicadores (
                     codigo,
                     nome,
@@ -89,11 +88,11 @@ def load_indicator(
                     periodicidade = EXCLUDED.periodicidade,
                     fonte = EXCLUDED.fonte;
                 """,
-                indicator_parameters,
-            )
+            indicator_parameters,
+        )
 
-            cursor.executemany(
-                """
+        cursor.executemany(
+            """
                 INSERT INTO valores_indicadores (
                     codigo_indicador,
                     data_referencia,
@@ -108,7 +107,7 @@ def load_indicator(
                     valor = EXCLUDED.valor,
                     coletado_em = CURRENT_TIMESTAMP;
                 """,
-                value_parameters,
-            )
+            value_parameters,
+        )
 
     return len(records)

@@ -365,7 +365,13 @@ def test_calculate_ipca_accumulated_12_months_uses_compound_interest():
 
     history = build_history(
         433,
-        list(zip(monthly_dates.date, monthly_rates)),
+        list(
+            zip(
+                monthly_dates.date,
+                monthly_rates,
+                strict=True,
+            )
+        ),
     )
 
     accumulated = calculate_ipca_accumulated_12_months(
@@ -413,7 +419,13 @@ def test_calculate_ipca_accumulated_12_months_uses_last_twelve_readings_only():
     history = build_history(
         433,
         older_month
-        + list(zip(monthly_dates.date, monthly_rates)),
+        + list(
+            zip(
+                monthly_dates.date,
+                monthly_rates,
+                strict=True,
+            )
+        ),
     )
 
     accumulated = calculate_ipca_accumulated_12_months(
@@ -442,7 +454,13 @@ def test_calculate_ipca_accumulated_12_months_rejects_non_consecutive_months():
 
     history = build_history(
         433,
-        list(zip(monthly_dates, [0.4] * 12)),
+        list(
+            zip(
+                monthly_dates,
+                [0.4] * 12,
+                strict=True,
+            )
+        ),
     )
 
     with pytest.raises(

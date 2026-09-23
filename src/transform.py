@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
+
 @dataclass(frozen=True)
 class IndicatorValue:
     indicator_code: int

@@ -1,11 +1,14 @@
 from datetime import date
 from decimal import Decimal
+
 import pandas as pd
 import pytest
+
 from src.queries import (
     get_indicator_history,
     normalize_indicator_data,
 )
+
 
 def test_normalize_indicator_data_converts_types():
     original_dataframe = pd.DataFrame(

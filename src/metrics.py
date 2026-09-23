@@ -5,7 +5,6 @@ from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 
-
 IPCA_ACCUMULATION_MONTHS = 12
 
 SELIC_COMPARISON_WINDOW_DAYS = 365

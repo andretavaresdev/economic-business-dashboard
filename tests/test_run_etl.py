@@ -1,9 +1,12 @@
 from datetime import date
+
 import pytest
+
 from src.run_etl import (
     calculate_historical_start_date,
     determine_start_date,
 )
+
 
 def test_calculates_five_year_historical_period() -> None:
     end_date = date(2026, 9, 23)

@@ -7,7 +7,6 @@ from src.indicators import INDICATORS, Indicator, get_indicator
 from src.load import get_latest_reference_date, load_indicator
 from src.transform import transform_bcb_records
 
-
 INITIAL_HISTORY_YEARS = 5
 DEFAULT_REPROCESS_DAYS = 7
 

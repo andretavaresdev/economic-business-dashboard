@@ -2,6 +2,7 @@ import pytest
 
 from src.audit import start_etl_execution
 
+
 @pytest.mark.parametrize(
     "indicator_code",
     [0, -1, -432],

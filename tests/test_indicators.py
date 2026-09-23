@@ -2,6 +2,7 @@ import pytest
 
 from src.indicators import INDICATORS, get_indicator
 
+
 def test_catalog_contains_expected_indicators():
     assert set(INDICATORS) == {"selic", "ipca", "dolar"}
 
