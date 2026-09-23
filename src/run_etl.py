@@ -32,9 +32,12 @@ def determine_start_date(
     backfill: bool,
 ) -> date:
 
+    if backfill:
+        return calculate_historical_start_date(end_date)
+
     latest_date = get_latest_reference_date(indicator_code)
 
-    if backfill or latest_date is None:
+    if latest_date is None:
         return calculate_historical_start_date(end_date)
 
     if latest_date > end_date:
