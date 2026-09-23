@@ -202,7 +202,7 @@ def test_visualizar_dados_shows_history_table(monkeypatch):
     table = at.dataframe[0].value
 
     assert len(table) == 5
-    assert list(table.columns)[0] == "Data"
+    assert next(iter(table.columns)) == "Data"
 
 
 def test_shows_warning_when_no_indicators_available(
@@ -302,11 +302,13 @@ def test_indicator_cards_show_derived_business_metrics(
         for text in caption_texts
     )
     assert any(
-        "p.p. em 12 meses" in text
+        "Variação 12 meses" in text
+        and "p.p." in text
         for text in caption_texts
     )
     assert any(
-        "em 30 dias" in text for text in caption_texts
+        "Variação 30 dias" in text
+        for text in caption_texts
     )
 
 

@@ -16,7 +16,6 @@ from src.queries import (
     get_latest_indicator_values,
 )
 
-
 PERIOD_OPTIONS = {
     "Últimos 12 meses": 365,
     "Últimos 3 anos": 365 * 3,
@@ -114,6 +113,10 @@ def load_indicator_history(
     )
 
 
+def trend_icon(value: float) -> str:
+    return "📈" if value >= 0 else "📉"
+
+
 def calculate_card_derived_metric(
     indicator_code: int,
     end_date: date,
@@ -139,8 +142,8 @@ def calculate_card_derived_metric(
                 history
             )
             return (
-                f"{format_signed_number_br(change)} p.p. "
-                "em 12 meses"
+                f"{trend_icon(change)} Variação 12 meses: "
+                f"{format_signed_number_br(change)} p.p."
             )
 
         if indicator_code == IPCA_INDICATOR_CODE:
@@ -150,7 +153,8 @@ def calculate_card_derived_metric(
                 )
             )
             return (
-                "Acumulado 12 meses: "
+                f"{trend_icon(accumulated)} Acumulado "
+                "12 meses: "
                 f"{format_signed_number_br(accumulated)}%"
             )
 
@@ -161,8 +165,9 @@ def calculate_card_derived_metric(
                 )
             )
             return (
-                f"{format_signed_number_br(variation)}% "
-                "em 30 dias"
+                f"{trend_icon(variation)} Variação "
+                "30 dias: "
+                f"{format_signed_number_br(variation)}%"
             )
 
     except Exception:
@@ -179,6 +184,7 @@ def render_indicator_cards(
     for column, (_, indicator) in zip(
         columns,
         latest_values.iterrows(),
+        strict=True,
     ):
         indicator_code = int(
             indicator["indicator_code"]
@@ -194,23 +200,22 @@ def render_indicator_cards(
             reference_date.date(),
         )
 
-        with column:
-            with st.container(border=True):
-                st.metric(
-                    label=f"{icon} {indicator['indicator_name']}",
-                    value=format_indicator_value(
-                        indicator_code,
-                        value,
-                    ),
-                )
+        with column, st.container(border=True):
+            st.metric(
+                label=f"{icon} {indicator['indicator_name']}",
+                value=format_indicator_value(
+                    indicator_code,
+                    value,
+                ),
+            )
 
-                st.caption(
-                    f"{indicator['frequency'].capitalize()} • "
-                    f"Referência: {reference_date:%d/%m/%Y}"
-                )
+            st.caption(
+                f"{indicator['frequency'].capitalize()} • "
+                f"Referência: {reference_date:%d/%m/%Y}"
+            )
 
-                if derived_metric is not None:
-                    st.caption(f"📈 {derived_metric}")
+            if derived_metric is not None:
+                st.caption(derived_metric)
 
 
 def render_sidebar_filters(
