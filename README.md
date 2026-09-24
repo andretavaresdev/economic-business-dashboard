@@ -41,7 +41,7 @@ Pipeline de dados que coleta indicadores econômicos da API do Banco Central do 
 ├── pyproject.toml              # Configuração do ruff
 ├── pytest.ini                  # Configuração do pytest
 ├── requirements.txt            # Dependências de runtime
-├── requirements-dev.txt        # + dependências de desenvolvimento (ruff)
+├── requirements-dev.txt        # + dependências de desenvolvimento (ruff, pytest)
 ├── sql/
 │   ├── init.sql                # Schema inicial (roda uma vez, em volume novo)
 │   └── migrations/             # Alterações de schema para bancos já existentes

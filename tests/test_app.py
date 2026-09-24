@@ -7,6 +7,7 @@ import streamlit as st
 from streamlit.testing.v1 import AppTest
 
 from app import (
+    PERIOD_COMPARISON_BUFFER_DAYS,
     format_indicator_value,
     format_number_br,
     indicator_value_axis_label,
@@ -182,7 +183,7 @@ def test_can_switch_period_and_history_range_changes(
     first_call = history_spy.calls[-1]
     assert (
         first_call["end_date"] - first_call["start_date"]
-    ).days == 365
+    ).days == 365 + PERIOD_COMPARISON_BUFFER_DAYS
 
     at.sidebar.selectbox[1].set_value(
         "Últimos 5 anos"
@@ -191,7 +192,7 @@ def test_can_switch_period_and_history_range_changes(
     last_call = history_spy.calls[-1]
     assert (
         last_call["end_date"] - last_call["start_date"]
-    ).days == 365 * 5
+    ).days == 365 * 5 + PERIOD_COMPARISON_BUFFER_DAYS
 
 
 def test_visualizar_dados_shows_history_table(monkeypatch):
@@ -201,7 +202,7 @@ def test_visualizar_dados_shows_history_table(monkeypatch):
 
     table = at.dataframe[0].value
 
-    assert len(table) == 5
+    assert len(table) == 4
     assert next(iter(table.columns)) == "Data"
 
 

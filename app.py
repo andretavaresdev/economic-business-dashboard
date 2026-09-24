@@ -34,6 +34,8 @@ INDICATOR_ICONS = {
 
 DEFAULT_INDICATOR_ICON = "📊"
 
+PERIOD_COMPARISON_BUFFER_DAYS = 40
+
 DERIVED_METRIC_HISTORY_BUFFER_DAYS = {
     SELIC_INDICATOR_CODE: SELIC_COMPARISON_WINDOW_DAYS + 30,
     IPCA_INDICATOR_CODE: 400,
@@ -342,10 +344,14 @@ def main() -> None:
         days=PERIOD_OPTIONS[selected_period]
     )
 
+    history_start_date = start_date - timedelta(
+        days=PERIOD_COMPARISON_BUFFER_DAYS
+    )
+
     try:
         history = load_indicator_history(
             indicator_code=selected_indicator_code,
-            start_date=start_date,
+            start_date=history_start_date,
             end_date=end_date,
         )
 
@@ -368,6 +374,14 @@ def main() -> None:
     )
 
     if history.empty:
+        chart_history = history
+    else:
+        chart_history = history.loc[
+            pd.to_datetime(history["reference_date"])
+            >= pd.Timestamp(start_date)
+        ]
+
+    if chart_history.empty:
         st.info(
             "Não existem dados para o período selecionado."
         )
@@ -383,7 +397,7 @@ def main() -> None:
         selected_indicator_code
     )
 
-    chart_data = history.rename(
+    chart_data = chart_history.rename(
         columns={
             "reference_date": "Data",
             "value": value_label,
